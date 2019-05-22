@@ -25,7 +25,7 @@ one_hot_y = tf.one_hot(y, 10)
 
 #Defining the weights and the biases that will be used in the Network
 # Store layers weight & bias
-weights = {
+'''weights = {
     'wc1': tf.Variable(tf.random_normal([5, 5, 1, 32])),
     'wc2': tf.Variable(tf.random_normal([5, 5, 32, 64])),
     'wd1': tf.Variable(tf.random_normal([7*7*64, 1024])),
@@ -35,7 +35,7 @@ biases = {
     'bc1': tf.Variable(tf.random_normal([32])),
     'bc2': tf.Variable(tf.random_normal([64])),
     'bd1': tf.Variable(tf.random_normal([1024])),
-    'out': tf.Variable(tf.random_normal([n_classes]))}
+    'out': tf.Variable(tf.random_normal([n_classes]))}'''
 
 #function to train LeNet
 def LeNet(x):
@@ -57,9 +57,9 @@ def LeNet(x):
      
     #Second Convolution
     '''The Input for the images should be 10*10*16 for the first convolution layer'''
-    conv_w = tf.Variable(tf.truncated_normal(shape=(5,5,6,16), mean=mu, stddev=sigma))
-    conv_b = tf.Variable(tf.zeros(6))
-    conv2 = tf.nn.conv2d(conv1, conv2_w, strides=[1,1,1,1], padding='VALID') + conv_b
+    conv2_w = tf.Variable(tf.truncated_normal(shape=(5,5,6,16), mean=mu, stddev=sigma))
+    conv2_b = tf.Variable(tf.zeros(6))
+    conv2 = tf.nn.conv2d(conv1, conv2_w, strides=[1,1,1,1], padding='VALID') + conv2_b
 
     #Activation Function
     conv2 = tf.nn.relu(conv2)
@@ -72,7 +72,7 @@ def LeNet(x):
 
     #First Fully Connected Layer
     '''The Input for the images should be 28*28*6 for the first convolution layer'''
-    fc1_w = tf.Variable(tf.truncated_normal(shape =(400,120)), mean=mu, stddev=sigma)
+    fc1_w = tf.Variable(tf.truncated_normal(shape =(400,120), mean=mu, stddev=sigma))
     fc1_b = tf.Variable(tf.zeros(120))
     fc1 = tf.matmul(fc0, fc1_w) + fc1_b
 
@@ -81,7 +81,7 @@ def LeNet(x):
 
     #Second Fully Connected Layer
     '''The Input for the images should be 28*28*6 for the first convolution layer'''
-    fc2_w = tf.Variable(tf.truncated_normal(shape=(120, 84)), mean=mu, stddev=sigma)
+    fc2_w = tf.Variable(tf.truncated_normal(shape=(120, 84), mean=mu, stddev=sigma))
     fc2_b = tf.Variable(tf.zeros(84))
     fc2 = tf.matmul(fc1, fc2_w) + fc2_b
 
@@ -90,7 +90,7 @@ def LeNet(x):
 
     #Third Fully Connected Layer
     '''The Input for the images should be 28*28*6 for the first convolution layer'''
-    fc3_w = tf.Variable(tf.truncated_normal(shape=(84,10)), mean=mu, stddev=sigma)
+    fc3_w = tf.Variable(tf.truncated_normal(shape=(84,10), mean=mu, stddev=sigma))
     fc3_b = tf.Variable(tf.zeros(10))
     logits = tf.matmul(fc2, fc3_w) + fc3_b
     '''The Final output should be 10 as per the MNIST data'''
@@ -98,6 +98,7 @@ def LeNet(x):
 
 #function to evaluate
 def evaluate():
+    return null
 
 #Deep Learning details
 logits = LeNet(x)
