@@ -15,6 +15,11 @@ X_train, y_train           = mnist.train.images, mnist.train.labels
 X_validation, y_validation = mnist.validation.images, mnist.validation.labels
 X_test, y_test             = mnist.test.images, mnist.test.labels
 
+# Pad images with 0s
+X_train      = np.pad(X_train, ((0,0),(2,2),(2,2),(0,0)), 'constant')
+X_validation = np.pad(X_validation, ((0,0),(2,2),(2,2),(0,0)), 'constant')
+X_test       = np.pad(X_test, ((0,0),(2,2),(2,2),(0,0)), 'constant')
+
 #defining the tensorflow hyperparameters
 EPOCHS = 10
 BATCH_SIZE = 128
@@ -22,6 +27,9 @@ rate = 0.001
 x = tf.placeholder(tf.float32, (None, 32, 32, 1))
 y = tf.placeholder(tf.int32, (None))
 one_hot_y = tf.one_hot(y, 10)
+
+#preproccessing hte data
+X_train, y_train = shuffle(X_train, y_train)
 
 #Defining the weights and the biases that will be used in the Network
 # Store layers weight & bias
@@ -58,7 +66,7 @@ def LeNet(x):
     #Second Convolution
     '''The Input for the images should be 10*10*16 for the first convolution layer'''
     conv2_w = tf.Variable(tf.truncated_normal(shape=(5,5,6,16), mean=mu, stddev=sigma))
-    conv2_b = tf.Variable(tf.zeros(6))
+    conv2_b = tf.Variable(tf.zeros(16))
     conv2 = tf.nn.conv2d(conv1, conv2_w, strides=[1,1,1,1], padding='VALID') + conv2_b
 
     #Activation Function
@@ -96,9 +104,6 @@ def LeNet(x):
     '''The Final output should be 10 as per the MNIST data'''
     return logits
 
-#function to evaluate
-def evaluate():
-    return null
 
 #Deep Learning details
 logits = LeNet(x)
@@ -107,6 +112,46 @@ loss_function = tf.reduce_mean(cross_entropy)
 optimizer = tf.train.AdamOptimizer(learning_rate=rate)
 training = optimizer.minimize(loss_function)
 
+#parameters for the correction of the training 
+correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
+accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+saver = tf.train.Saver()
+
+#function to evaluate
+def evaluate(x_data, y_data):
+    num_examples = len(x_data)
+    total_accuracy = 0
+    sess = tf.get_default_session()
+    for offset in range (0, num_examples, BATCH_SIZE):
+        batch_x, batch_y = x_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
+        accuracy = sess.run(accuracy_operation, feed_dict = {x:batch_x, y:batch_y})
+        total_accuracy += (accuracy*len(batch_x))
+    return total_accuracy/num_examples
+
 #Train The Model
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    num_examples = len(X_train)
+
+    print("Training...")
+    print()
+    for i in range(EPOCHS):
+        X_train, y_train = shuffle(X_train, y_train)
+        for offset in range(0, num_examples, BATCH_SIZE):
+            end = offset + BATCH_SIZE
+            batch_x, batch_y = X_train[offset:end], y_train[offset:end]
+            sess.run(training, feed_dict={x: batch_x, y: batch_y})
+            
+        validation_accuracy = evaluate(X_validation, y_validation)
+        print("EPOCH {} ...".format(i+1))
+        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        print()
+        
+    saver.save(sess, './lenet')
+    print("Model saved")
+
+with tf.Session() as sess:
+    saver.restore(sess, tf.train.latest_checkpoint('.'))
+
+    test_accuracy = evaluate(X_test, y_test)
+    print("Test Accuracy = {:.3f}".format(test_accuracy))
